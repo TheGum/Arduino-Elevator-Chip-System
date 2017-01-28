@@ -111,13 +111,6 @@ void databaseConfiguration() {
 void databaseAppendAllRecords() {
   deleteAll();
 
-  appendOneRecord("Dimitur Kostadinov", 47, "asd897asd3654", true);
-  appendOneRecord("Vencislav Kostadinov", 47, "zx23c1a6s5845d", true);
-  appendOneRecord("Yonka Kostadinova", 47, "qw98e65a31scz", true);
-  appendOneRecord("Martin Tranteev", 48, "qwe653a12xcz", false);
-  appendOneRecord("Liliq Tranteeva", 48, "zxc896as45da", false);
-  appendOneRecord("Petur Tranteev", 48, "as98a7sd65a4sd", false);
-
   selectAll();
 }
 
