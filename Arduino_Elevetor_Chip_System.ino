@@ -10,6 +10,12 @@
 #define SD_PIN 4  // SD Card CS pin according to SD Card type or Board Shield
 #define TABLE_SIZE 8192
 
+#include <MFRC522.h>
+
+#define SS_PIN 10
+#define RST_PIN 9
+MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
+
 
 // <--------------------------------- SD Card Database -----------------------------------> \\
 
@@ -52,9 +58,13 @@ void setup()
   Serial.println("Start Project:");
   Serial.println();
 
+  SPI.begin();      // Initiate  SPI bus
+  mfrc522.PCD_Init();   // Initiate MFRC522
+
   randomSeed(analogRead(0));
 
   databaseConfiguration();
+
 }
 
 void databaseConfiguration() {
@@ -111,23 +121,15 @@ void databaseConfiguration() {
 void databaseAppendAllRecords() {
   deleteAll();
 
-  selectAll();
-}
+  /*
+    Serial.println("< -------------- Show all records -------------- >");
+    char* Username, int Apartment, char* CardID, bool CardStatus
 
-void selectOneRecord(int Id)
-{
-  db.readRec(Id, EDB_REC logEvent);
+    selectAll();
+    Serial.println("< ---------------------------------------------- >");
+  */
 
-  Serial.print("Id: ");
-  Serial.print(Id);
-  Serial.print(", Username: ");
-  Serial.print(logEvent.username);
-  Serial.print(", Apartment: ");
-  Serial.print(logEvent.apartment);
-  Serial.print(", CardID: ");
-  Serial.print(logEvent.cardId);
-  Serial.print(", Status: ");
-  Serial.println(logEvent.cardStatus);
+  Serial.println();
 }
 
 void selectAll()
@@ -165,7 +167,7 @@ void updateOneRecord(int Id, bool CardStatus)
 
 void appendOneRecord(char* Username, int Apartment, char* CardID, bool CardStatus)
 {
-  Serial.print("Appending record... ");
+  // Serial.print("Appending record... ");
 
   logEvent.id = countRecords + 1;
   logEvent.username = Username;
@@ -176,7 +178,7 @@ void appendOneRecord(char* Username, int Apartment, char* CardID, bool CardStatu
   EDB_Status result = db.appendRec(EDB_REC logEvent);
   if (result != EDB_OK) printError(result);
 
-  Serial.println("DONE");
+  // Serial.println("DONE");
 }
 
 void recordLimit()
@@ -225,17 +227,55 @@ void printError(EDB_Status err)
 
 // <-----------------------------------   RFID   -----------------------------------------> \\
 
-void loop()
-{
+void loop() {
+  readAndCheckUID();
 }
 
-bool CheckCardStatus(char* CardId) { 
-  for (int Id = 1; Id <= db.count(); Id++) {
+
+void readAndCheckUID() {
+  // Look for new cards
+  if ( ! mfrc522.PICC_IsNewCardPresent())
+  {
+    return;
+  }
+
+  // Select one of the cards
+  if ( ! mfrc522.PICC_ReadCardSerial())
+  {
+    return;
+  }
+
+  String content = "";
+  for (byte i = 0; i < mfrc522.uid.size; i++)
+  {
+    content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
+    content.concat(String(mfrc522.uid.uidByte[i], HEX));
+  }
+
+  content.trim();
+  content.toUpperCase();
+
+  for (int Id = 1; Id <= db.count(); Id++)
+  {
     db.readRec(Id, EDB_REC logEvent);
 
-    if (logEvent.cardId == CardId) return logEvent.cardStatus;
+    String UID = String(logEvent.cardId);
+    UID.trim();
+    UID.toUpperCase();
+
+    if (UID.equals(content)) {
+      if (logEvent.cardStatus == true) {
+        Serial.println("UID: " + UID);
+        Serial.println("Is Active: Yes!");
+        Serial.println();
+        delay(3000);
+      } else {
+        Serial.println("UID: " + UID);
+        Serial.println("Is Active: No!");
+        Serial.println();
+        delay(3000);
+      }
+    }
   }
 }
-
-
 
