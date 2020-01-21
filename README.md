@@ -1,6 +1,6 @@
 # Arduino-Elevator-Chip-System
 
-Simple elevetor system with chip controll + SD Card Database.
+Simple Elevator Access Control Card Reader.
  
  - Configuration:
   * Arduino Uno
