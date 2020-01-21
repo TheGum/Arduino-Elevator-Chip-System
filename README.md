@@ -2,12 +2,12 @@
 
 Simple Elevator Access Control Card Reader.
  
- - Configuration:
+Configuration:
   * Arduino Uno
   * SD Card module
   * RFID MFRC522
   
- - Included libraries:
+Included libraries:
   * jwhiddon/EDB - https://github.com/jwhiddon/EDB
   * miguelbalboa/rfid - https://github.com/miguelbalboa/rfid
   
